@@ -23,9 +23,10 @@ public class RigidbodyMove : MonoBehaviour {
 
 	void Carry(GameObject o) {
 		o.transform.position = Vector3.Lerp(o.transform.position,  mainCamera.transform.position + mainCamera.transform.forward * distance, Time.deltaTime  * smooth) ;
-
-
+		//o.transform.position = mainCamera.transform.position + mainCamera.transform.forward;
 	}
+
+
 
 	void Pickup() {
 
@@ -84,6 +85,39 @@ public class RigidbodyMove : MonoBehaviour {
 
 		// put our input values into an "input vector"
 		inputVector = new Vector3( 0f, 0f, inputVertical );
+
+
+		if (Input.GetMouseButtonDown (0) && carriedObject != null && carriedObject.gameObject.name == "disc") {
+
+			// STEP 1: define the Ray; based on Camera perspective
+			Ray shootRay = new Ray( Camera.main.transform.position, Camera.main.transform.forward);
+
+			// STEP 2: define a maximum distance for the Raycast
+			float maxRayDistance = 100f;
+
+			// STEP 3: visualize the Ray
+			Debug.DrawRay( shootRay.origin, shootRay.direction, Color.yellow);
+
+			// STEP 3.5: define a RaycastHit variable to remember what we hit
+			RaycastHit shootRayHit = new RaycastHit();
+
+			// STEP 4: let's shoot the Raycast!!!
+			if(Physics.Raycast(shootRay, out shootRayHit, maxRayDistance ) ) {
+				if (shootRayHit.transform.gameObject.name == "iMac") {
+					carriedObject.GetComponent<DiscController> ().DiscEnter ();
+					carriedObject.GetComponent<DiscController> ().discEntered = true;
+					carriedObject = null;
+					carrying = false;
+					//shootRayHit.transform.gameObject.GetComponent<DiscController> ().DiscEnter ();
+					//shootRayHit.transform.gameObject.GetComponent<DiscController> ().discEntered = true;
+
+				}
+				
+			}
+
+
+		}
+			
 
 		// normalize inputVector if magnitude > 1f, to avoid diagonal movement exploit
 		if( inputVector.magnitude > 1f ) {

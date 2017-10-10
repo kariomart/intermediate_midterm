@@ -16,7 +16,7 @@ public class ShootRaycast : MonoBehaviour {
 
 			Ray shootRay = new Ray (Camera.main.transform.position, Camera.main.transform.forward);
 			float maxRayDistance = 100f;
-			Debug.DrawRay (shootRay.origin, shootRay.direction, Color.magenta);
+			Debug.DrawRay (shootRay.origin, shootRay.direction * maxRayDistance, Color.magenta);
 
 			RaycastHit shootRayHit = new RaycastHit ();
 
