@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 // put this script on your player Cube
 public class RigidbodyMove : MonoBehaviour {
@@ -11,6 +12,10 @@ public class RigidbodyMove : MonoBehaviour {
 	Vector3 inputVector;
 
 	public GameObject escapeText;
+	public GameObject reticle;
+	public Sprite cursor1;
+	public Sprite cursor2;
+	public GameObject youWin;
 
 	public GameObject perspectiveCam;
 	public GameObject orthoCam;
@@ -20,6 +25,8 @@ public class RigidbodyMove : MonoBehaviour {
 	public GameObject screen_off;
 	public GameObject bugdomIcon;
 	public GameObject appleMenu;
+	public Text npcText;
+	public Text objectText;
 
 	float speed = 2f;
 	public bool carrying;
@@ -29,6 +36,11 @@ public class RigidbodyMove : MonoBehaviour {
 	public float smooth;
 	public bool jumping;
 	public float collisionCount;
+
+	public AudioSource audio;
+	public AudioSource soundFX;
+
+	public AudioClip cdDrive;
 
 	// Use this for initialization
 	void Start () {
@@ -104,7 +116,6 @@ public class RigidbodyMove : MonoBehaviour {
 		// put our input values into an "input vector"
 		inputVector = new Vector3( 0f, 0f, inputVertical );
 
-
 		if (Input.GetMouseButtonDown(0)) {
 			LeftClickRay ();
 		}
@@ -120,9 +131,16 @@ public class RigidbodyMove : MonoBehaviour {
 
 		if (macView) { 
 		escapeText.SetActive (true); 
+		reticle.SetActive (false);
 		Cursor.visible = true; 
 		Cursor.lockState = CursorLockMode.None; 
-		} else { escapeText.SetActive (false); }
+				
+		} else { 
+			escapeText.SetActive (false); 
+			reticle.SetActive (true); 
+			Cursor.visible = false; 
+			Cursor.lockState = CursorLockMode.Locked; 
+		}
 	
 			
 
@@ -133,10 +151,11 @@ public class RigidbodyMove : MonoBehaviour {
 
 		if (carrying) {
 			Carry (carriedObject);
-			checkDrop ();
+			reticle.gameObject.GetComponent<Image> ().sprite = cursor2;
 
 		} else {
 			Pickup  ();
+			reticle.gameObject.GetComponent<Image> ().sprite = cursor1;
 		}
 
 
@@ -147,12 +166,24 @@ public class RigidbodyMove : MonoBehaviour {
 			jumping = false;
 		}
 
+		if (carriedObject == null) {
+
+			objectText.text = "";
+
+		} else {
+			
+			objectText.text = carriedObject.gameObject.name;
+		}
+
+
+			
+
 	}
 
 	// FixedUpdate runs at a "Fixed" framerate, which is when physics run
 	void FixedUpdate () {
 //		Debug.Log (jumping);
-		// both of these lines of code do basically the same thing
+		checkDrop ();
 		if (!jumping) {
 			myRigidbody.AddForce (transform.TransformDirection (inputVector) * speed);
 			myRigidbody.AddRelativeForce (inputVector * 25f);
@@ -168,6 +199,11 @@ public class RigidbodyMove : MonoBehaviour {
 
 		}
 
+		if (!macView) {
+			ShootBasicRay ();
+		}
+			
+
 
 	}
 
@@ -180,6 +216,27 @@ public class RigidbodyMove : MonoBehaviour {
 	void OnCollisionExit(Collision coll) {
 
 		collisionCount--;
+	}
+
+	void ShootBasicRay() {
+
+		Ray shootRay;
+		shootRay = new Ray (Camera.main.transform.position, Camera.main.transform.forward);
+		float maxRayDistance = 10f;
+		Debug.DrawRay(shootRay.origin, shootRay.direction, Color.magenta);
+		RaycastHit shootRayHit = new RaycastHit();
+
+		Pickupable p = shootRayHit.collider.GetComponent<Pickupable> ();
+
+		if (p != null) {
+			
+
+
+
+		}
+
+
+
 	}
 
 
@@ -218,14 +275,15 @@ public class RigidbodyMove : MonoBehaviour {
 			}
 					
 
-			if (name == "bugdom_icon" && macView) {
+			if (name == "bugdom_icon" && macView && discInserted) {
 
 				launchBugdom ();
 
 			}
 
 			if (name == "switch") {
-				Debug.Log ("switch pressed!!");
+				//Debug.Log ("switch pressed!!");
+				npcText.text = "switch pressed!";
 				restartMac ();
 
 			}
@@ -234,6 +292,8 @@ public class RigidbodyMove : MonoBehaviour {
 
 				bugdom.SetActive (false);
 				room.SetActive (true);
+				youWin.SetActive (true);
+				audio.Stop ();
 					
 
 			}
@@ -244,6 +304,8 @@ public class RigidbodyMove : MonoBehaviour {
 
 	void EnterDisc() {
 
+		soundFX.clip = cdDrive;
+		soundFX.Play ();
 		carriedObject.GetComponent<DiscController> ().DiscEnter ();
 		carriedObject.GetComponent<DiscController> ().discEntered = true;
 		carriedObject = null;
@@ -271,6 +333,7 @@ public class RigidbodyMove : MonoBehaviour {
 		bugdomIcon.SetActive (false);
 		room.SetActive (false);
 		bugdom.SetActive (true);
+		audio.Play ();
 
 	}
 
