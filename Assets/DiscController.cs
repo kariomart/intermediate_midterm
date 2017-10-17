@@ -4,19 +4,26 @@ using UnityEngine;
 
 public class DiscController : MonoBehaviour {
 
+	public GameObject player;
 	public GameObject iMac;
 	public GameObject UIText;
+	public GameObject perspectiveCamera;
+	public GameObject orthoCamera;
+	public BoxCollider boxCollider;
 	public Transform startMarker;
 	public Transform endMarker;
 	public float speed = 1.0F;
 	private float startTime;
 	private float journeyLength;
 	public bool discEntered;
+	public bool pickedUp;
+
 
 	// Use this for initialization
 	void Start () {
 		
-		
+		boxCollider = GetComponent<BoxCollider> ();
+
 	}
 	
 	// Update is called once per frame
@@ -29,11 +36,17 @@ public class DiscController : MonoBehaviour {
 
 			//Debug.Log (fracJourney);
 			if (fracJourney >= 1) {
-				UIText.SetActive (true);
+				perspectiveCamera.gameObject.SetActive (false);
+				orthoCamera.gameObject.SetActive (true);
+				Cursor.visible = true;
+				Cursor.lockState = CursorLockMode.None;
+				player.GetComponent<RigidbodyMove> ().macView = true;
+				player.GetComponent<RigidbodyMove> ().discInserted = true;
+				//UIText.SetActive (true);
+
 				Destroy (this.gameObject);
 			}
 		}
-			
 
 
 		
