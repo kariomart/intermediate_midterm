@@ -7,7 +7,7 @@ public class RigidbodyMove : MonoBehaviour {
 
 	Rigidbody myRigidbody;
 	public GameObject mainCamera;
-	GameObject carriedObject;
+	public GameObject carriedObject;
 	Vector3 inputVector;
 
 	public GameObject escapeText;
@@ -16,9 +16,13 @@ public class RigidbodyMove : MonoBehaviour {
 	public GameObject orthoCam;
 	public GameObject room;
 	public GameObject bugdom;
+	public GameObject screen_on;
+	public GameObject screen_off;
+	public GameObject bugdomIcon;
+	public GameObject appleMenu;
 
 	float speed = 2f;
-	bool carrying;
+	public bool carrying;
 	public bool macView = false;
 	public bool discInserted;
 	public float distance;
@@ -78,12 +82,12 @@ public class RigidbodyMove : MonoBehaviour {
 
 	}
 
-	void DropObject() {
+	public void DropObject() {
+		Debug.Log ("Dropped " + carriedObject);
 		carrying = false;
 		carriedObject.GetComponent<Rigidbody> ().isKinematic = false;
 		carriedObject.GetComponent<Collider> ().enabled = true;
 		carriedObject = null;
-
 
 	}
 
@@ -101,7 +105,9 @@ public class RigidbodyMove : MonoBehaviour {
 		inputVector = new Vector3( 0f, 0f, inputVertical );
 
 
-		LeftClickRay ();
+		if (Input.GetMouseButtonDown(0)) {
+			LeftClickRay ();
+		}
 
 		if (Input.GetKeyDown (KeyCode.Escape) && macView) {
 
@@ -112,7 +118,11 @@ public class RigidbodyMove : MonoBehaviour {
 
 		}
 
-		if (macView) { escapeText.SetActive (true); } else { escapeText.SetActive (false); }
+		if (macView) { 
+		escapeText.SetActive (true); 
+		Cursor.visible = true; 
+		Cursor.lockState = CursorLockMode.None; 
+		} else { escapeText.SetActive (false); }
 	
 			
 
@@ -141,7 +151,7 @@ public class RigidbodyMove : MonoBehaviour {
 
 	// FixedUpdate runs at a "Fixed" framerate, which is when physics run
 	void FixedUpdate () {
-		Debug.Log (jumping);
+//		Debug.Log (jumping);
 		// both of these lines of code do basically the same thing
 		if (!jumping) {
 			myRigidbody.AddForce (transform.TransformDirection (inputVector) * speed);
@@ -174,8 +184,7 @@ public class RigidbodyMove : MonoBehaviour {
 
 
 	void LeftClickRay () {
-
-		if (Input.GetMouseButton(0)) {
+		
 			Ray shootRay;
 
 			// STEP 1: define the Ray; based on Camera perspective
@@ -183,49 +192,92 @@ public class RigidbodyMove : MonoBehaviour {
 				shootRay = new Ray (orthoCam.GetComponent<Camera>().ScreenToWorldPoint(Input.mousePosition), orthoCam.transform.forward);
 
 			} else {
-
 				shootRay = new Ray (Camera.main.transform.position, Camera.main.transform.forward);
 			}
+				
 
-			// STEP 2: define a maximum distance for the Raycast
 			float maxRayDistance = 15f;
-
-			// STEP 3: visualize the Ray
 			Debug.DrawRay(shootRay.origin, shootRay.direction, Color.yellow);
-
-			// STEP 3.5: define a RaycastHit variable to remember what we hit
 			RaycastHit shootRayHit = new RaycastHit();
 
-			// STEP 4: let's shoot the Raycast!!!
-			if(Physics.Raycast(shootRay, out shootRayHit, maxRayDistance )) {
+
+		if (Physics.Raycast (shootRay, out shootRayHit, maxRayDistance)) {
+			string name = shootRayHit.transform.gameObject.name;
+
 				
-				if (shootRayHit.transform.gameObject.name == "iMac" && carrying) {
-					carriedObject.GetComponent<DiscController> ().DiscEnter ();
-					carriedObject.GetComponent<DiscController> ().discEntered = true;
-					carriedObject = null;
-					carrying = false;
-					//macView = true;
-					//discInserted = true;
-					//shootRayHit.transform.gameObject.GetComponent<DiscController> ().DiscEnter ();
-					//shootRayHit.transform.gameObject.GetComponent<DiscController> ().discEntered = true;
-				}
+			if (name == "iMac" && carrying) {
 
-				if (shootRayHit.transform.gameObject.name == "iMac") {
-					perspectiveCam.gameObject.SetActive (false);
-					orthoCam.gameObject.SetActive (true);
-					macView = true;
-				}
-					
-
-				if (shootRayHit.transform.gameObject.name == "bugdom_icon" && macView) {
-					room.SetActive (false);
-					bugdom.SetActive (true);
-				}
+				EnterDisc ();
+				
 			}
 
+			if (name == "iMac") {
+					
+				checkImac ();
+
+			}
+					
+
+			if (name == "bugdom_icon" && macView) {
+
+				launchBugdom ();
+
+			}
+
+			if (name == "switch") {
+				Debug.Log ("switch pressed!!");
+				restartMac ();
+
+			}
+
+			if (name == "apple_menu") {
+
+				bugdom.SetActive (false);
+				room.SetActive (true);
+					
+
+			}
 		}
 
+	}
 
+
+	void EnterDisc() {
+
+		carriedObject.GetComponent<DiscController> ().DiscEnter ();
+		carriedObject.GetComponent<DiscController> ().discEntered = true;
+		carriedObject = null;
+		carrying = false;
+		//macView = true;
+		//discInserted = true;
+		//shootRayHit.transform.gameObject.GetComponent<DiscController> ().DiscEnter ();
+		//shootRayHit.transform.gameObject.GetComponent<DiscController> ().discEntered = true;
+
+	}
+
+	void checkImac() {
+
+		perspectiveCam.gameObject.SetActive (false);
+		orthoCam.gameObject.SetActive (true);
+		macView = true;
+
+	}
+
+	void launchBugdom() {
+
+		screen_on.SetActive(false);
+		bugdomIcon.SetActive (false);
+		screen_off.SetActive (true);
+		bugdomIcon.SetActive (false);
+		room.SetActive (false);
+		bugdom.SetActive (true);
+
+	}
+
+	void restartMac() {
+		screen_off.SetActive (false);
+		screen_on.SetActive(true);
+		appleMenu.SetActive (true);
 	}
 
 }
